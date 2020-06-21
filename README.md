@@ -6,6 +6,8 @@ This means you can identify a error a transferred file down to a chunk by compar
 
 Can accurately identify good data up the chunk of the error, if it's a substitution (not deletion/insertion) can identify good data beyond it.
 
+The point is if you want to check a transfer over a slow data link, you can run merkmap at both ends. For example on a 708MB CD iso, the full merkmap is 64KB and by transferring that 64KB you could identify the 1MB chunk with an error. You'd rarely even need the entire map.
+
 ## Usage
 
 `merkmap INFILE OUTFILE`.
