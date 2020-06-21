@@ -19,19 +19,18 @@ void usage(char *name) {
 }
 
 int main(int argc, char* argv[]) {
-  if(argc != 3) {
-    usage(argv[0]);
-  }
-
   FILE* fp;
   char *buffer;
   char *filename;
-  //  SHA256_CTX ctx;
   size_t inFileSize;
   size_t merkmapSize;
   char * merkmapTree;
   struct stat fp_stat;
   
+  if(argc != 3) {
+    usage(argv[0]);
+  }
+
   filename = argv[1];
   stat(filename, &fp_stat);
   inFileSize = fp_stat.st_size;
@@ -53,16 +52,13 @@ int main(int argc, char* argv[]) {
   char* treeptr = merkmapTree;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
     SHA256(buffer, CHUNK_SIZE, treeptr);
-    /*    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, buffer, CHUNK_SIZE);
-    SHA256_Final(treeptr, &ctx);*/
     treeptr += SHA256_DIGEST_LENGTH;
     memset(buffer, 0, CHUNK_SIZE);
   }
 
   free(buffer);
   buffer = NULL;
-  fclose(fp); //For some reason this file point is not valid?
+  fclose(fp);
   
 #ifdef __DEBUG
   puts("Chunks hashed.");
@@ -75,9 +71,6 @@ int main(int argc, char* argv[]) {
   while (hashptr < endTree) {
     while (hashptr < endLastRow) {
       SHA256(hashptr, SHA256_DIGEST_LENGTH * 2, treeptr);
-      //      SHA256_Init(&ctx);
-      //      SHA256_Update(&ctx, hashptr, SHA256_DIGEST_LENGTH * 2);
-      //      SHA256_Final(treeptr, &ctx);
       hashptr += SHA256_DIGEST_LENGTH * 2;
       treeptr += SHA256_DIGEST_LENGTH;
     }
@@ -93,4 +86,5 @@ int main(int argc, char* argv[]) {
   fwrite(merkmapTree, SHA256_DIGEST_LENGTH, merkmapSize, fp);
   fclose(fp);
   free(merkmapTree);
+  exit(EXIT_SUCCESS);
 }

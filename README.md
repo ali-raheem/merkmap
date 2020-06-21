@@ -12,7 +12,11 @@ Can accurately identify good data up the chunk of the error, if it's a substitut
 
 ## Building
 
-Needs openssl libcrypto
+Need openssl/libcrypto
+
+Use make `make`
+
+Or directly
 
 `gcc -O2 -o bin/merkmap src/merkmap.c -lm -lcrypto`
 
