@@ -1,12 +1,16 @@
 # merkmap
 
-Produce a Merklemap of a file to add in finding transfer errors.
+Produce a [Merklemap](https://en.wikipedia.org/wiki/Merkle_tree) of a file to add in finding transfer errors.
 
 This means you can identify a error a transferred file down to a chunk by comparing hashs rather than chunks of data.
 
 Can accurately identify good data up the chunk of the error, if it's a substitution (not deletion/insertion) can identify good data beyond it.
 
 The point is if you want to check a transfer over a slow data link, you can run merkmap at both ends. For example on a 708MB CD iso, the full merkmap is 64KB and by transferring that 64KB you could identify the 1MB chunk with an error. You'd rarely even need the entire map.
+
+![Merkle map - David Göthbergvia & Azaghal wikipedia CC1](docs/Hash_Tree.svg)
+
+The first hash would tell you if both files are the same, the second set will tell you if there is an error in the first or second half of the file.
 
 ## Usage
 
