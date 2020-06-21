@@ -8,14 +8,14 @@
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (1*1024*1024)
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
 void usage(char *name) {
-  printf("merkmap - %sv\n%s - %s\n", VERSION, AUTHOR, URL);
+  printf("merkmap\t\t %sv\n%s\t %s\n", VERSION, AUTHOR, URL);
   printf("Usage:\t%s INPUT_FILE OUT_FILE\n\n", name);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 int main(int argc, char* argv[]) {
@@ -24,14 +24,13 @@ int main(int argc, char* argv[]) {
   }
 
   FILE* fp;
-  struct stat fp_stat;
   char *buffer;
   char *filename;
+  //  SHA256_CTX ctx;
   size_t inFileSize;
   size_t merkmapSize;
   char * merkmapTree;
-
-  SHA256_CTX ctx;
+  struct stat fp_stat;
   
   filename = argv[1];
   stat(filename, &fp_stat);
@@ -53,28 +52,32 @@ int main(int argc, char* argv[]) {
 
   char* treeptr = merkmapTree;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
-    SHA256_Init(&ctx);
+    SHA256(buffer, CHUNK_SIZE, treeptr);
+    /*    SHA256_Init(&ctx);
     SHA256_Update(&ctx, buffer, CHUNK_SIZE);
-    SHA256_Final(treeptr, &ctx);
+    SHA256_Final(treeptr, &ctx);*/
     treeptr += SHA256_DIGEST_LENGTH;
     memset(buffer, 0, CHUNK_SIZE);
   }
-  
-  //  fclose(fp); //For some reason this file point is not valid?
+
+  free(buffer);
+  buffer = NULL;
+  fclose(fp); //For some reason this file point is not valid?
   
 #ifdef __DEBUG
   puts("Chunks hashed.");
 #endif
   
   char* hashptr = merkmapTree;
-  treeptr = merkmapTree + numChunksPow2 * SHA256_DIGEST_LENGTH;
+  treeptr = merkmapTree + (numChunksPow2 - 1) * SHA256_DIGEST_LENGTH;
   char* endLastRow = treeptr;
-  char* endTree = merkmapTree + merkmapSize * SHA256_DIGEST_LENGTH;
+  char* endTree = merkmapTree + (merkmapSize - 1) * SHA256_DIGEST_LENGTH;
   while (hashptr < endTree) {
     while (hashptr < endLastRow) {
-      SHA256_Init(&ctx);
-      SHA256_Update(&ctx, hashptr, SHA256_DIGEST_LENGTH * 2);
-      SHA256_Final(treeptr, &ctx);
+      SHA256(hashptr, SHA256_DIGEST_LENGTH * 2, treeptr);
+      //      SHA256_Init(&ctx);
+      //      SHA256_Update(&ctx, hashptr, SHA256_DIGEST_LENGTH * 2);
+      //      SHA256_Final(treeptr, &ctx);
       hashptr += SHA256_DIGEST_LENGTH * 2;
       treeptr += SHA256_DIGEST_LENGTH;
     }
@@ -89,4 +92,5 @@ int main(int argc, char* argv[]) {
   fp = fopen(filename, "wb");
   fwrite(merkmapTree, SHA256_DIGEST_LENGTH, merkmapSize, fp);
   fclose(fp);
+  free(merkmapTree);
 }
