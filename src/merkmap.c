@@ -8,10 +8,12 @@
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (1*1024*1024)
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
+#define AUTHOR "Ali Raheem"
+#define URL "https://github.com/ali-raheem/merkmap"
 
 void usage(char *name) {
-  printf("merkmap - %sv\n", VERSION);
+  printf("merkmap - %sv\n%s - %s\n", VERSION, AUTHOR, URL);
   printf("Usage:\t%s INPUT_FILE OUT_FILE\n\n", name);
   exit(1);
 }
@@ -20,7 +22,7 @@ int main(int argc, char* argv[]) {
   if(argc != 3) {
     usage(argv[0]);
   }
-  char c;
+
   FILE* fp;
   struct stat fp_stat;
   char *buffer;
