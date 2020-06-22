@@ -81,6 +81,7 @@ int main(int argc, char* argv[]) {
 #ifdef __DEBUG
   puts("Merkle tree created.");
 #endif
+
   filename = argv[2];
   fp = fopen(filename, "wb");
   fwrite(merkmapTree, SHA256_DIGEST_LENGTH, merkmapSize, fp);
