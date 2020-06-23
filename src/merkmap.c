@@ -8,7 +8,7 @@
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (1*1024*1024)
-#define VERSION "0.0.3"
+#define VERSION "0.1.0"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
@@ -23,7 +23,6 @@ int main(int argc, char* argv[]) {
   char *buffer;
   char *filename;
   size_t inFileSize;
-  size_t merkmapSize;
   char * merkmapTree;
   struct stat fp_stat;
   
@@ -40,13 +39,13 @@ int main(int argc, char* argv[]) {
   buffer = (char *) malloc(CHUNK_SIZE);
   assert(buffer != NULL);
 
-  float numChunks = (float) ceil((double) inFileSize / (double) CHUNK_SIZE);
-  size_t numChunksPow2 =  (size_t) powf(2, ceil(log(numChunks) / log(2.0)));
-  merkmapSize = (size_t) powf(2, ceil(log(numChunks) / log(2.0)) + 1) - 1;
+  size_t numChunks = (float) ceil((double) inFileSize / (double) CHUNK_SIZE);
+  size_t numHashs = (2 * numChunks) - 1;
+
 #ifdef __DEBUG
   printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
 #endif
-  merkmapTree = (char *) calloc(merkmapSize, SHA256_DIGEST_LENGTH);
+  merkmapTree = (char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   assert(merkmapTree != NULL);
 
   char* treeptr = merkmapTree;
@@ -63,19 +62,20 @@ int main(int argc, char* argv[]) {
 #ifdef __DEBUG
   puts("Chunks hashed.");
 #endif
-  
-  char* hashptr = merkmapTree;
-  treeptr = merkmapTree + (numChunksPow2 - 1) * SHA256_DIGEST_LENGTH;
-  char* endLastRow = treeptr;
-  char* endTree = merkmapTree + (merkmapSize - 1) * SHA256_DIGEST_LENGTH;
-  while (hashptr < endTree) {
-    while (hashptr < endLastRow) {
-      SHA256(hashptr, SHA256_DIGEST_LENGTH * 2, treeptr);
-      hashptr += SHA256_DIGEST_LENGTH * 2;
-      treeptr += SHA256_DIGEST_LENGTH;
+
+  size_t hashsDone = numChunks;
+  size_t hashsPerTier = numChunks;
+  size_t i = 0;
+  while (hashsDone < numHashs) {
+    for(; i < (hashsDone + hashsPerTier)/2; i++) {
+      printf("i: %ul, hashsDone: %ul, hashesPerTier: %ul\n", i, hashsDone, hashsPerTier);
+      printf("data: %ul, dest: %ul\n", 2 * i, hashsPerTier - i);
+      unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
+      unsigned char* dest = data + (hashsPerTier - (i - hashsDone/2)) * SHA256_DIGEST_LENGTH;
+      SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
     }
-    hashptr = endLastRow;
-    endLastRow = treeptr;
+    hashsDone += hashsPerTier;
+    hashsPerTier /= 2;
   }
 
 #ifdef __DEBUG
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
   filename = argv[2];
   fp = fopen(filename, "wb");
-  fwrite(merkmapTree, SHA256_DIGEST_LENGTH, merkmapSize, fp);
+  fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, fp);
   fclose(fp);
   free(merkmapTree);
   exit(EXIT_SUCCESS);
