@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   size_t hashsPerTier = numBase/2;
   assert(hashsPerTier > 1);
   i = 0;
-  while (hashsPerTier > 1) {
+  while (hashsPerTier) {
     size_t j = 0;
     for(; i < (hashsDone + hashsPerTier)/2; i++) {
       j++;

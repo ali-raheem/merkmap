@@ -3,6 +3,8 @@ CC=gcc
 merkmap:
 	$(CC) -O2 -Wall -o bin/merkmap src/merkmap.c -lm -lcrypto
 
+clean:
+	rm bin/merkmap*
 install:
 	cp bin/merkmap /usr/local/bin/merkmap
 
