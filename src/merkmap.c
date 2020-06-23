@@ -20,10 +20,10 @@ void usage(char *name) {
 
 int main(int argc, char* argv[]) {
   FILE* fp;
-  char *buffer;
+  unsigned char *buffer;
   char *filename;
   size_t inFileSize;
-  char * merkmapTree;
+  unsigned char * merkmapTree;
   struct stat fp_stat;
   
   if(argc != 3) {
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   fp = fopen(filename, "rb");
   assert(fp != NULL);
   
-  buffer = (char *) malloc(CHUNK_SIZE);
+  buffer = (unsigned char *) malloc(CHUNK_SIZE);
   assert(buffer != NULL);
 
   size_t numChunks = (float) ceil((double) inFileSize / (double) CHUNK_SIZE);
@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
 #ifdef __DEBUG
   printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
 #endif
-  merkmapTree = (char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
+  merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   assert(merkmapTree != NULL);
 
-  char* treeptr = merkmapTree;
+  unsigned char* treeptr = merkmapTree;
   size_t i = 0;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
     SHA256(buffer, CHUNK_SIZE, treeptr);
