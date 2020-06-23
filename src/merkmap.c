@@ -66,13 +66,14 @@ int main(int argc, char* argv[]) {
   free(buffer);
   buffer = NULL;
   fclose(fp);
+  fp = NULL;
   
 #ifdef __DEBUG
   puts("Chunks hashed.");
 #endif
 
   size_t hashsDone = numBase;
-  size_t hashsPerTier = numBase;
+  size_t hashsPerTier = numBase/2;
   assert(hashsPerTier > 1);
   i = 0;
   while (hashsPerTier > 1) {
@@ -84,7 +85,7 @@ int main(int argc, char* argv[]) {
       printf("data: %ul, dest: %ul\n", 2 * i, hashsPerTier - i);
 #endif
       unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
-      unsigned char* dest = data + (hashsPerTier - j) * SHA256_DIGEST_LENGTH;
+      unsigned char* dest = merkmapTree + (hashsDone + j) * SHA256_DIGEST_LENGTH;
       SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
     }
     hashsDone += hashsPerTier;
