@@ -40,7 +40,8 @@ int main(int argc, char* argv[]) {
   assert(buffer != NULL);
 
   size_t numChunks = (float) ceil((double) inFileSize / (double) CHUNK_SIZE);
-  size_t numHashs = (2 * numChunks) - 1;
+  size_t numBase = powf(2, ceil(log(numChunks) / log(2)));
+  size_t numHashs = (2 * numBase) - 1;
 
 #ifdef __DEBUG
   printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
@@ -49,29 +50,42 @@ int main(int argc, char* argv[]) {
   assert(merkmapTree != NULL);
 
   char* treeptr = merkmapTree;
+  size_t i = 0;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
     SHA256(buffer, CHUNK_SIZE, treeptr);
     treeptr += SHA256_DIGEST_LENGTH;
     memset(buffer, 0, CHUNK_SIZE);
+    i++;
   }
 
+  while (i <= numBase) {
+    SHA256(buffer, CHUNK_SIZE, treeptr);
+    treeptr += SHA256_DIGEST_LENGTH;
+    i++;
+   }
   free(buffer);
   buffer = NULL;
   fclose(fp);
+  fp = NULL;
   
 #ifdef __DEBUG
   puts("Chunks hashed.");
 #endif
 
-  size_t hashsDone = numChunks;
-  size_t hashsPerTier = numChunks;
-  size_t i = 0;
-  while (hashsDone < numHashs) {
+  size_t hashsDone = numBase;
+  size_t hashsPerTier = numBase/2;
+  assert(hashsPerTier > 1);
+  i = 0;
+  while (hashsPerTier > 1) {
+    size_t j = 0;
     for(; i < (hashsDone + hashsPerTier)/2; i++) {
-      printf("i: %ul, hashsDone: %ul, hashesPerTier: %ul\n", i, hashsDone, hashsPerTier);
+      j++;
+#ifdef __DEBUG
+      printf("i: %ul, hashsDone: %ul, hashesPerTier: %ul\n", i, hashsDone, hashsPerTier + i);
       printf("data: %ul, dest: %ul\n", 2 * i, hashsPerTier - i);
+#endif
       unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
-      unsigned char* dest = data + (hashsPerTier - (i - hashsDone/2)) * SHA256_DIGEST_LENGTH;
+      unsigned char* dest = merkmapTree + (hashsDone + j) * SHA256_DIGEST_LENGTH;
       SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
     }
     hashsDone += hashsPerTier;
