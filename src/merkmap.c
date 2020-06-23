@@ -58,10 +58,11 @@ int main(int argc, char* argv[]) {
     i++;
   }
 
-  /*  while (i <= numBase) {
+  while (i <= numBase) {
     SHA256(buffer, CHUNK_SIZE, treeptr);
+    treeptr += SHA256_DIGEST_LENGTH;
     i++;
-    }*/
+   }
   free(buffer);
   buffer = NULL;
   fclose(fp);
@@ -71,16 +72,19 @@ int main(int argc, char* argv[]) {
 #endif
 
   size_t hashsDone = numBase;
-  size_t hashsPerTier = numBase/2;
+  size_t hashsPerTier = numBase;
+  assert(hashsPerTier > 1);
   i = 0;
-  while (hashsDone < numHashs) {
+  while (hashsPerTier > 1) {
+    size_t j = 0;
     for(; i < (hashsDone + hashsPerTier)/2; i++) {
+      j++;
 #ifdef __DEBUG
       printf("i: %ul, hashsDone: %ul, hashesPerTier: %ul\n", i, hashsDone, hashsPerTier + i);
       printf("data: %ul, dest: %ul\n", 2 * i, hashsPerTier - i);
 #endif
       unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
-      unsigned char* dest = data + (hashsPerTier + i) * SHA256_DIGEST_LENGTH;
+      unsigned char* dest = data + (hashsPerTier - j) * SHA256_DIGEST_LENGTH;
       SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
     }
     hashsDone += hashsPerTier;
