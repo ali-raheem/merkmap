@@ -49,9 +49,6 @@ int main(int argc, char* argv[]) {
   while (numBase < numChunks) numBase <<= 1;
   size_t numHashs = (2 * numBase) - 1;
 
-#ifdef __DEBUG
-  printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
-#endif
   merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   if(merkmapTree == NULL){
     perror("Error allocating memory for merklemap");
@@ -75,19 +72,11 @@ int main(int argc, char* argv[]) {
   fclose(fp);
   fp = NULL;
   
-#ifdef __DEBUG
-  puts("Chunks hashed.");
-#endif
-
   for(i = 0; i < numBase - 1; i++) {
     unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
     unsigned char* dest = merkmapTree + (numBase + i) * SHA256_DIGEST_LENGTH;
     SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
   }
-
-#ifdef __DEBUG
-  puts("Merkle tree created.");
-#endif
 
   filename = argv[2];
   if (strcmp(filename, "-") != 0){
