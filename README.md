@@ -16,6 +16,8 @@ The first hash would tell you if both files are the same, the second set will te
 
 `merkmap INFILE OUTFILE`.
 
+If `OUTFILE` is `-` the map will be outputted to stdout.
+
 ## Building
 
 Need openssl/libcrypto

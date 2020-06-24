@@ -6,8 +6,8 @@
 #include <sys/types.h>
 #include <openssl/sha.h>
 
-#define CHUNK_SIZE (1*1024*1024)
-#define VERSION "0.1.1"
+#define CHUNK_SIZE (32*1024)
+#define VERSION "0.1.2"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
@@ -82,9 +82,16 @@ int main(int argc, char* argv[]) {
 #endif
 
   filename = argv[2];
-  fp = fopen(filename, "wb");
-  fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, fp);
-  fclose(fp);
+  if (strcmp(filename, "-") != 0){
+    fp = fopen(filename, "wb");
+    assert(fp != NULL);
+    fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, fp);
+    fclose(fp);
+    fp = NULL;
+  }else{
+     fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, stdout);
+  }
   free(merkmapTree);
+  merkmapTree = NULL;
   exit(EXIT_SUCCESS);
 }
