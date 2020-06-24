@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (32*1024)
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
@@ -33,10 +32,16 @@ int main(int argc, char* argv[]) {
   stat(filename, &fp_stat);
   inFileSize = fp_stat.st_size;
   fp = fopen(filename, "rb");
-  assert(fp != NULL);
+  if(fp == NULL) {
+    perror("Infile: ");
+    exit(EXIT_FAILURE);
+  }
   
   buffer = (unsigned char *) malloc(CHUNK_SIZE);
-  assert(buffer != NULL);
+  if(buffer == NULL){
+    perror("Read buffer");
+    exit(EXIT_FAILURE);
+  }
 
   size_t numChunks = (inFileSize / CHUNK_SIZE);
   if (inFileSize % CHUNK_SIZE) numChunks += 1;
@@ -48,7 +53,10 @@ int main(int argc, char* argv[]) {
   printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
 #endif
   merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
-  assert(merkmapTree != NULL);
+  if(merkmapTree == NULL){
+    perror("Merklemap Tree");
+    exit(EXIT_FAILURE);
+  }
 
   size_t i = 0;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
@@ -84,7 +92,10 @@ int main(int argc, char* argv[]) {
   filename = argv[2];
   if (strcmp(filename, "-") != 0){
     fp = fopen(filename, "wb");
-    assert(fp != NULL);
+    if(fp == NULL) {
+      perror("Outfile");
+      exit(EXIT_FAILURE);
+    }
     fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, fp);
     fclose(fp);
     fp = NULL;
