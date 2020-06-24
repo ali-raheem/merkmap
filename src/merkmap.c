@@ -33,13 +33,13 @@ int main(int argc, char* argv[]) {
   inFileSize = fp_stat.st_size;
   fp = fopen(filename, "rb");
   if(fp == NULL) {
-    perror("Infile: ");
+    perror("Error opening infile for reading");
     exit(EXIT_FAILURE);
   }
   
   buffer = (unsigned char *) malloc(CHUNK_SIZE);
   if(buffer == NULL){
-    perror("Read buffer");
+    perror("Error allocating memory for read buffer");
     exit(EXIT_FAILURE);
   }
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 #endif
   merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   if(merkmapTree == NULL){
-    perror("Merklemap Tree");
+    perror("Error allocating memory for merklemap");
     exit(EXIT_FAILURE);
   }
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
   if (strcmp(filename, "-") != 0){
     fp = fopen(filename, "wb");
     if(fp == NULL) {
-      perror("Outfile");
+      perror("Error opening outfile for writing");
       exit(EXIT_FAILURE);
     }
     fwrite(merkmapTree, SHA256_DIGEST_LENGTH, numHashs, fp);
