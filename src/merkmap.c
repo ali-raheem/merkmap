@@ -1,4 +1,3 @@
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -8,7 +7,7 @@
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (1*1024*1024)
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
@@ -39,8 +38,10 @@ int main(int argc, char* argv[]) {
   buffer = (unsigned char *) malloc(CHUNK_SIZE);
   assert(buffer != NULL);
 
-  size_t numChunks = (float) ceil((double) inFileSize / (double) CHUNK_SIZE);
-  size_t numBase = powf(2, ceil(log(numChunks) / log(2)));
+  size_t numChunks = (inFileSize / CHUNK_SIZE);
+  if (inFileSize % CHUNK_SIZE) numChunks += 1;
+  size_t numBase = 1;
+  while (numBase < numChunks) numBase <<= 1;
   size_t numHashs = (2 * numBase) - 1;
 
 #ifdef __DEBUG
@@ -49,20 +50,18 @@ int main(int argc, char* argv[]) {
   merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   assert(merkmapTree != NULL);
 
-  unsigned char* treeptr = merkmapTree;
   size_t i = 0;
   while (fread(buffer, CHUNK_SIZE, 1, fp)) {
-    SHA256(buffer, CHUNK_SIZE, treeptr);
-    treeptr += SHA256_DIGEST_LENGTH;
+    SHA256(buffer, CHUNK_SIZE, merkmapTree + i * SHA256_DIGEST_LENGTH);
     memset(buffer, 0, CHUNK_SIZE);
     i++;
   }
 
   while (i <= numBase) {
-    SHA256(buffer, CHUNK_SIZE, treeptr);
-    treeptr += SHA256_DIGEST_LENGTH;
+    SHA256(buffer, CHUNK_SIZE, merkmapTree + i * SHA256_DIGEST_LENGTH);
     i++;
    }
+
   free(buffer);
   buffer = NULL;
   fclose(fp);
@@ -72,24 +71,10 @@ int main(int argc, char* argv[]) {
   puts("Chunks hashed.");
 #endif
 
-  size_t hashsDone = numBase;
-  size_t hashsPerTier = numBase/2;
-  assert(hashsPerTier > 1);
-  i = 0;
-  while (hashsPerTier) {
-    size_t j = 0;
-    for(; i < (hashsDone + hashsPerTier)/2; i++) {
-      j++;
-#ifdef __DEBUG
-      printf("i: %ul, hashsDone: %ul, hashesPerTier: %ul\n", i, hashsDone, hashsPerTier + i);
-      printf("data: %ul, dest: %ul\n", 2 * i, hashsPerTier - i);
-#endif
-      unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
-      unsigned char* dest = merkmapTree + (hashsDone + j) * SHA256_DIGEST_LENGTH;
-      SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
-    }
-    hashsDone += hashsPerTier;
-    hashsPerTier /= 2;
+  for(i = 0; i < numBase - 1; i++) {
+    unsigned char* data = merkmapTree + 2 * i * SHA256_DIGEST_LENGTH;
+    unsigned char* dest = merkmapTree + (numBase + i) * SHA256_DIGEST_LENGTH;
+    SHA256(data, 2 * SHA256_DIGEST_LENGTH, dest);
   }
 
 #ifdef __DEBUG
