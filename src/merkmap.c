@@ -7,7 +7,7 @@
 #include <openssl/sha.h>
 
 #define CHUNK_SIZE (32*1024)
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Ali Raheem"
 #define URL "https://github.com/ali-raheem/merkmap"
 
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   fp = fopen(filename, "rb");
   assert(fp != NULL);
   
-  buffer = (unsigned char *) malloc(CHUNK_SIZE);
+  buffer = (unsigned char *) malloc(CHUNK_SIZE * sizeof(unsigned char));
   assert(buffer != NULL);
 
   size_t numChunks = (inFileSize / CHUNK_SIZE);
@@ -44,9 +44,6 @@ int main(int argc, char* argv[]) {
   while (numBase < numChunks) numBase <<= 1;
   size_t numHashs = (2 * numBase) - 1;
 
-#ifdef __DEBUG
-  printf("numChunks: %f\nnumChunksPow2: %lu\nmerkmapSize: %lu\n\n", numChunks, numChunksPow2, merkmapSize);
-#endif
   merkmapTree = (unsigned char *) calloc(numHashs, SHA256_DIGEST_LENGTH);
   assert(merkmapTree != NULL);
 
